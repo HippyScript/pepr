@@ -1,0 +1,38 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add Activity</h5>
+        </div>
+        <div class="modal-body">
+            <form action="proc.php" method="POST" enctype="multipart/form-data">
+                <div class="form-group"><label for="activity_name">Title</label><input type="text" class="form-control" name="activity_name" id="activity_name"></div>
+                <div class="form-group"><label for="gpx">GPX File</label><input type="file" class="form-control-file" name="gpx" id="gpx"></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" name="manual" id="manual"><label for="manual" class="form-check-label">Manual Activity</label></div>
+                <div class="form-group">
+                    <label class="manual-entry mr-1" style="display: none;" for="activity_date" id="date_label">Date </label><input class="manual-entry" style="display: none;" type="date" class="form-control" name="activity_date" id="activity_date">
+                    <label class="manual-entry mr-1" style="display: none;" for="activity_time" id="time_label">Time </label><input class="manual-entry" style="display: none;" type="time" class="form-control" name="activity_time" id="activity_time">
+                </div>
+                <div class="form-group"><label class="manual-entry mr-1" style="display: none;" for="activity_duration" id="duration_label">Duration </label><input class="manual-entry" style="width: 30px; display: none;" type="text" class="form-control" name="activity_hours" id="activity_hours"><span class="manual-entry" style="display: none;">:</span><input class="manual-entry" style="width: 30px; display: none;" type="text" class="form-control" name="activity_minutes" id="activity_minutes"><span class="manual-entry" style="display: none;">:</span><input class="manual-entry" style="width: 30px; display: none;" type="text" class="form-control" name="activity_seconds" id="activity_seconds"></div>
+                <div class="form-group"><label class="manual-entry mr-1" style="display: none;" for="activity_distance" id="distance_label">Distance </label><input style="width: 70px; display: none;" class="manual-entry" type="number" step="0.01" placeholder="0.0" class=" form-control" name="activity_distance" id="activity_distance"></div>
+                <div class="form-group"><label for="activity_description">Description</label><textarea rows="5" cols="40" name="activity_description" id="activity_description"></textarea></div>
+                <div class="form-group" style="display: inline;"><label for="shoes">Shoes</label>
+                    <select class="form-control" id="shoes" name="shoes" style="width: 250px;">
+
+                    </select> </div>
+                <div class=" form-group"><label for="activity_type">Activity Type</label><select class="form-control" name="activity_type" id="activity_type">
+                        <option>run</option>
+                        <option>bike</option>
+                        <option>climb</option>
+                        <option>hike</option>
+                        <option>kayak</option>
+                        <option>yoga</option>
+                        <option>weight</option>
+                        <option>workout</option>
+                        <option>sup</option>
+                        <option>elliptical</option>
+                        <option>swim</option>
+                    </select></div><button type="submit" class="btn btn-primary mb-2 mr-2">Save</button><button type="button" class="btn btn-secondary mb-2" data-dismiss="modal">Close</button>
+            </form>
+        </div>
+    </div>
+</div>

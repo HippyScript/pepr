@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>pePR</title>
+    <style type="text/css">
+        .navbar {
+            background: #03adff;
+        }
+
+        h2 a {
+            color: #03adff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav id="universal-nav" class="mb-2 navbar navbar-expand-lg sticky-top">
+
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div id="feed" class="col">
+                &nbsp;
+            </div>
+            <div class="col">
+                <div class="card shadow-sm mt-1">
+                    <div class="card-header">Stats</div>
+                    <div class="card-body">
+                        <div class="btn-group" role="group"><a class="nav-link m-1" href="#" id="run-stats"><img src="icons/run.svg" style="height:30px; width: 30px;"></a><a class="nav-link m-1" href="#" id="bike-stats"><img src="icons/bike.svg" style="height:30px; width: 30px;"></a><a class="nav-link m-1" href="#" id="hike-stats"><img src="icons/hike.svg" style="height:30px; width: 30px;"></a><a class="nav-link m-1" href="#" id="kayak-stats"><img src="icons/kayak.svg" style="height:30px; width: 30px;"></a><a class="nav-link m-1" href="#" id="swim-stats"><img src="icons/swim.svg" style="height:30px; width: 30px;"></a>
+                        </div>
+                        <div class=" card-text" id="stats">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Distance this Week</th>
+                                        <td id="week_miles"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Distance this Year</th>
+                                        <td id="year_miles"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Total Distance</th>
+                                        <td id="total_miles">Mark</td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-1 shadow-sm">
+                    <div class="card-header">Shoes</div>
+                    <div class="card-body">
+                        <div class="card-text">
+                            <table class="table table-striped p-0">
+                                <tbody id="shoe_stats" class="p-0">&nbsp;
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" tabindex="-1" role="dialog" id="add-activity-dialog"></div>
+
+        <script src=" https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <script src="util.js"></script>
+        <script>
+            $(document).ready(function() {
+                    args = location.href.split("?");
+                    if (args.length > 1 && args[1] == "init") {
+                        $("#initial-dialog").show();
+                    }
+                    $("#universal-nav").load("nav.html");
+                    load_add_dialog();
+                    get_activities(12);
+                    get_total_miles('run');
+                    get_year_miles('run');
+                    get_week_miles('run');
+                    list_shoes();
+                    $("#run-stats").addClass("border border-secondary");
+                    $(".manual-entry").hide();
+                    $("#initial-dialog").show();
+                }
+
+            );
+
+            $(".btn-group .nav-link").click(function() {
+                    activity_type = $(this).attr("id").split('-')[0];
+                    $(".btn-group .nav-link").removeClass("border border-secondary");
+                    $(this).addClass("border border-secondary");
+                    get_total_miles(activity_type);
+                    get_year_miles(activity_type);
+                    get_week_miles(activity_type);
+                }
+
+            );
+            load_add_dialog();
+            $(document).on("change", "#manual", function() {
+                if (this.checked) {
+                    $("#gpx").prop("disabled", true);
+                    $(".manual-entry").show();
+                } else {
+                    $("#gpx").prop("disabled", false);
+                    $(".manual-entry").hide();
+                }
+            });
+
+            $(window).scroll(function() {
+                    if ($(window).scrollTop() >= $(document).height() - $(window).height() - 2) {}
+                }
+
+            );
+        </script>
+</body>
+
+</html>
+
+</html>
+
+</html>
