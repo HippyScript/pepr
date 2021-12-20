@@ -131,15 +131,15 @@ function add_activity($act_name, $act_type, $act_start, $act_duration, $act_dist
 	return true;
 }
 
-function get_activities(int $number_of_activities) {
+function get_activities(int $number_of_activities, int $record_offset) {
 
 	global $MYSQL_HOST, $MYSQL_USER, $MYSQL_PASSWORD;
 
 	$result = [];
-	$sql = "SELECT ID, activity_name, activity_type, activity_distance, activity_duration, activity_start, activity_description FROM activities ORDER BY activity_start DESC LIMIT " . strval($number_of_activities);
+	$sql = "SELECT ID, activity_name, activity_type, activity_distance, activity_duration, activity_start, activity_description FROM activities ORDER BY activity_start DESC LIMIT " . strval($number_of_activities) . " OFFSET " . strval($record_offset);
 	
 	$db_connection = new PDO("mysql:host=".$MYSQL_HOST.";dbname=pepr_db", $MYSQL_USER, $MYSQL_PASSWORD);
-
+    error_log($sql);
 	foreach ($db_connection->query($sql) as $row) {
 		array_push($result, ["id" => $row["ID"], 
 							"name" => $row["activity_name"],
@@ -147,7 +147,7 @@ function get_activities(int $number_of_activities) {
 							"distance" => $row["activity_distance"],
 							"duration" => $row["activity_duration"],
 							"start" => $row["activity_start"],
-							"description" => $row["activity_description"]]);
+							"description" => nl2br($row["activity_description"])]);
 	}
 
 	header('Content-Type: application/json');
@@ -331,7 +331,7 @@ function add_shoe($brand, $model, $nickname, $miles, $active) {
 	$sql = "INSERT INTO pepr_db.shoes (brand, model, nickname, mileage, is_active) VALUES ('" . $brand ."', '" . $model . "', '" . $nickname . "', " . $miles . ", 1);";
 	echo $sql;
 	$db_connection -> exec($sql);
-    header("Location: index.html");
+	//header("Location: index.html");
 }
 
 function delete_shoe(int $shoe_id) {
@@ -381,7 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 			make_database();
 			break;
 		case 'get_activities':
-			get_activities(intval($_GET['n']));
+			get_activities(intval($_GET['n']), intval($_GET['o']));
 			break;
 		case 'get_activities_by_length':
 			if (isset($_GET['start'])) {

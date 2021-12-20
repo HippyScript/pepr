@@ -211,18 +211,19 @@ function get_splits(activity_id) {
         });
 }
 
-function get_activities(num) {
+function get_activities(num, offset) {
     $.get('proc.php', {
             f: 'get_activities',
-            n: num
+            n: num,
+            o: offset
         })
         .done(function(msg) {
 
-            $("#feed").empty();
+            //$("#feed").empty();
             for (key of Object.keys(msg)) {
                 var activity_start = new Date(msg[key]["start"]);
                 var duration = seconds_to_formatted_string(parseInt(msg[key]["duration"]));
-                var activity_card = "<div class='card shadow-sm m-1' style='width: 40rem;'>\n" +
+                var activity_card = "<div class='card shadow-sm m-1 type-all type-" + msg[key]["type"] + "' style='width: 40rem;'>\n" +
                     "<div class='card-body'>\n" +
                     "<h5 class='card-title border-bottom'>" +
                     "<img style='height: 23px; width: 23px;' src='icons/" +

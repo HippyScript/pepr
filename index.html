@@ -24,6 +24,20 @@
     <div class="container">
         <div class="row">
             <div id="feed" class="col">
+            <div class=" form-group"><label for="activity_filter">Show activities</label><select class="form-control" name="activity_filter" id="activity_filter">
+                        <option>all</option>
+                        <option>run</option>
+                        <option>bike</option>
+                        <option>climb</option>
+                        <option>hike</option>
+                        <option>kayak</option>
+                        <option>yoga</option>
+                        <option>weight</option>
+                        <option>workout</option>
+                        <option>sup</option>
+                        <option>elliptical</option>
+                        <option>swim</option>
+                    </select></div>
                 &nbsp;
             </div>
             <div class="col">
@@ -74,6 +88,7 @@
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
         <script src="util.js"></script>
         <script>
+            var record_offset = 0; // Where in the database to start fetching new rows
             $(document).ready(function() {
                     args = location.href.split("?");
                     if (args.length > 1 && args[1] == "init") {
@@ -81,7 +96,8 @@
                     }
                     $("#universal-nav").load("nav.html");
                     load_add_dialog();
-                    get_activities(12);
+                    get_activities(12, record_offset);
+                    record_offset += 12;
                     get_total_miles('run');
                     get_year_miles('run');
                     get_week_miles('run');
@@ -113,9 +129,19 @@
                     $(".manual-entry").hide();
                 }
             });
+            $("#activity_filter").change(function() {
+                $("#feed .card").hide();
+                $(".type-" + $("#activity_filter").val()).show();
+            });
 
             $(window).scroll(function() {
-                    if ($(window).scrollTop() >= $(document).height() - $(window).height() - 2) {}
+                    if ($(window).scrollTop() >= $(document).height() - $(window).height() - 2) {
+                        //alert("End!");
+                        get_activities(12, record_offset);
+                        record_offset += 12;
+                        $("#feed .card").hide();
+                        $(".type-" + $("#activity_filter").val()).show();
+                    }
                 }
 
             );
