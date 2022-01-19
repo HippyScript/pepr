@@ -67,8 +67,6 @@ function get_year_miles(activity_type) {
 function get_week_miles(activity_type) {
     today = new Date();
     today.setDate(today.getDate());
-    console.log("**************************");
-    console.log(today);
     $.get('proc.php', {
             f: 'get_miles_between_dates',
             start: get_sunday(Date.now()),
@@ -278,9 +276,11 @@ function load_add_dialog() {
         })
         .done(function(msg) {
             $("#shoes").empty();
+            var opts = "";
             for (key of Object.keys(msg)) {
-                $("#shoes").append(`<option value='${msg[key]["id"]}'>${msg[key]["name"]}(${msg[key]["brand"]} ${msg[key]["model"]})</option>\\n`);
+                opts += `<option value='${msg[key]["id"]}'>${msg[key]["name"]}(${msg[key]["brand"]} ${msg[key]["model"]})</option>\\n`;
             }
+            $("#shoes").html(opts);
         });
 }
 
