@@ -38,7 +38,7 @@
                         <option>elliptical</option>
                         <option>swim</option>
                     </select></div>
-                &nbsp;
+                <button type="button" class="btn btn-primary btn-lg btn-block" id="add_button" data-toggle="modal" data-target="#add-activity-dialog">+ Add Activity</button>
             </div>
             <div class="col">
                 <div class="card shadow-sm mt-1">
@@ -119,6 +119,10 @@
                 }
 
             );
+            /*$("#add_button").click(function() {
+                $("#add-activity-dialog").show();
+            });*/
+            
             load_add_dialog();
             $(document).on("change", "#manual", function() {
                 if (this.checked) {
@@ -129,11 +133,13 @@
                     $(".manual-entry").hide();
                 }
             });
+            
             $("#activity_filter").change(function() {
                 $("#feed .card").hide();
                 $(".type-" + $("#activity_filter").val()).show();
             });
 
+            //Load more activities as user scrolls
             $(window).scroll(function() {
                     if ($(window).scrollTop() >= $(document).height() - $(window).height() - 2) {
                         //alert("End!");
@@ -147,9 +153,5 @@
             );
         </script>
 </body>
-
-</html>
-
-</html>
 
 </html>
