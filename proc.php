@@ -2,7 +2,7 @@
 
 	$MYSQL_HOST = "localhost";
 	$MYSQL_USER = "pepr";
-	$MYSQL_PASSWORD = "peprpassword123!@#";
+	$MYSQL_PASSWORD = "PeprPassword123!@#";
 
 function get_distance(float $lat1, float $lon1, float $lat2, float $lon2) : float {
 	// Haversine formula for distance between points
@@ -181,8 +181,13 @@ function get_activity(int $activity_id) {
 	global $MYSQL_HOST, $MYSQL_USER, $MYSQL_PASSWORD;
 	$db_connection = new PDO("mysql:host=".$MYSQL_HOST.";dbname=pepr_db", $MYSQL_USER, $MYSQL_PASSWORD);
 
-	$activity_contents = $db_connection->query("SELECT ID, activity_name, activity_type, activity_distance, activity_duration, activity_start, activity_pace_per_mile, activity_description, activity_elevation_gain FROM activities WHERE ID = " . intval($activity_id))->fetch();
+	$activity_contents = $db_connection->query("SELECT ID, activity_name, activity_type, activity_distance, activity_duration, activity_start, activity_pace_per_mile, activity_description, activity_elevation_gain, shoe FROM activities WHERE ID = " . intval($activity_id))->fetch();
 	$activity_contents['activity_description'] = str_replace("\n", "\n<br>", $activity_contents['activity_description']);
+	
+	$shoe = $db_connection->query("SELECT model, brand, nickname FROM shoes WHERE id = ". $activity_contents['shoe']) -> fetch();
+	$shoe = $shoe['brand'] . " " . $shoe['model'] . " (" . $shoe['nickname'] .")";
+	$activity_contents['shoe'] = $shoe;
+
 	$no_distance = array("climb", "yoga", "weight", "workout");
 	if (in_array($activity_contents["activity_type"], $no_distance)) {
 		header('Content-Type: application/json');
@@ -193,8 +198,6 @@ function get_activity(int $activity_id) {
 		header('Content-Type: application/json');
 		echo json_encode($activity_contents);
 	}
-	
-
 }
 
 function get_splits(int $activity_id) {
@@ -320,8 +323,20 @@ function get_miles_between_dates(string $start, string $end, string $activity_ty
 function delete_activity(int $activity_id) {
 	global $MYSQL_HOST, $MYSQL_USER, $MYSQL_PASSWORD;
 	$db_connection = new PDO("mysql:host=".$MYSQL_HOST.";dbname=pepr_db", $MYSQL_USER, $MYSQL_PASSWORD);
-	$sql = "DELETE FROM activities WHERE id=" . $activity_id . ";";
-	$db_connection -> query($sql);
+	$sql_delete = "DELETE FROM activities WHERE id=" . $activity_id . ";";
+	// Subtract the activity's distance from the mileage on the shoe used
+	// - Get the distance and shoe for the activity
+	$sql_shoe_mileage = "SELECT activity_distance, shoe FROM activities WHERE id=" . $activity_id .";";
+	$sql_shoe_mileage = $db_connection -> query($sql_shoe_mileage) -> fetch(PDO::FETCH_ASSOC);
+	$subtracted_mileage = floatval($sql_shoe_mileage["activity_distance"]);
+	// - Get the mileage on the shoe
+	$sql_old_mileage = "SELECT mileage FROM shoes WHERE id=" . $sql_shoe_mileage["shoe"] . ";";
+	$sql_old_mileage = $db_connection -> query($sql_old_mileage) -> fetch(PDO::FETCH_ASSOC);
+	// - Subtract activity's mileage from the shoe mileage and update the record
+	$new_mileage = floatval($sql_old_mileage["mileage"]) - $subtracted_mileage;
+	$sql_shoe_mileage = $db_connection -> query("UPDATE shoes SET mileage = " . $new_mileage . " WHERE id = ". $sql_shoe_mileage["shoe"] . ";");
+	// Actually delete the activity
+	$db_connection -> query($sql_delete);
 	header("Location: index.html");
 }
 
@@ -329,15 +344,15 @@ function add_shoe($brand, $model, $nickname, $miles, $active) {
 	global $MYSQL_HOST, $MYSQL_USER, $MYSQL_PASSWORD;
 	$db_connection = new PDO("mysql:host=".$MYSQL_HOST.";dbname=pepr_db", $MYSQL_USER, $MYSQL_PASSWORD);
 	$sql = "INSERT INTO pepr_db.shoes (brand, model, nickname, mileage, is_active) VALUES ('" . $brand ."', '" . $model . "', '" . $nickname . "', " . $miles . ", 1);";
-	echo $sql;
 	$db_connection -> exec($sql);
-	//header("Location: index.html");
+	header("Location: index.html");
 }
 
 function delete_shoe(int $shoe_id) {
 	global $MYSQL_HOST, $MYSQL_USER, $MYSQL_PASSWORD;
 	$db_connection = new PDO("mysql:host=".$MYSQL_HOST.";dbname=pepr_db", $MYSQL_USER, $MYSQL_PASSWORD);
-	$sql = "DELETE FROM shoes WHERE id=" . $shoe_id . ";";
+	// Shoe doesn't actually get deleted, just set to inactive
+	$sql = "UPDATE shoes SET is_active = 0 WHERE id=" . $shoe_id . ";";
 	$db_connection -> query($sql);
 	header("Location: index.html");
 }
