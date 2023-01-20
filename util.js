@@ -97,7 +97,7 @@ function get_activity(activity_id) {
                 msg["activity_type"] == "kayak" ||
                 msg["activity_type"] == "sup" ||
                 msg["activity_type"] == "elliptical") {
-                points = msg[9]["points"];
+                points = msg[10]["points"];
                 if (typeof(points[0]) != 'undefined') {
                     activity_date = new Date(points[0][1]["time"][0]);
                 }
@@ -131,6 +131,10 @@ function get_activity(activity_id) {
                 $("#activity_splits").hide();
                 return 0;
             }
+            if  (msg["activity_type"] == "run" ||
+                 msg["activity_type"] == "hike") {
+                    $("#shoe").html("Shoes: " + msg["shoe"]);
+                 }
             get_splits(activity_id);
             $("#distance").html(msg["activity_distance"] + "<span class='text-muted'> miles</span>");
             $("#pace").html(seconds_to_formatted_string(msg["activity_pace_per_mile"]) + "<span class='text-muted'>/mi</span>");
