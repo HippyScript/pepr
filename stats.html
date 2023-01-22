@@ -30,6 +30,12 @@
                 <option value="kayak">Kayak</option>
                 <option value="sup">Sup</option>
             </select>
+            <select id="year_filter" name="year_filter" class="form-control-sm">
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+            </select>
         </div>
         <div id="stats">
             <canvas id="year_by_month" width="400" height="100"></canvas>
@@ -62,10 +68,6 @@
         <script>
             $(document).ready(function() {
                 $("#universal-nav").load("nav.html");
-
-                $("#activity_filter").change(function() {
-                    // Add code
-                })
                 load_add_dialog();
                 $(document).on("change", "#manual", function() {
                     if (this.checked) {
@@ -76,9 +78,16 @@
                         $(".manual-entry").hide();
                     }
                 });
-                monthly_totals('*');
+                monthly_totals('*', $("#year_filter").val());
+
+                // Get stats when activity type is changed
                 $(document).on("change", "#activity_filter", function() {
-                    monthly_totals($("#activity_filter").val());
+                    monthly_totals($("#activity_filter").val(), $("#year_filter").val());
+                });
+
+                // Get stats when year is changed
+                $(document).on("change", "#year_filter", function() {
+                    monthly_totals($("#activity_filter").val(), $("#year_filter").val());
                 });
                 get_average_pace(3.1, "run", "#5k-pace");
                 get_average_pace(6.2, "run", "#10k-pace");

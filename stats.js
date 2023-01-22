@@ -2,10 +2,9 @@ var months = ["January", "February", "March", "April", "May", "June", "July", "A
 var monthly_miles = new Array(12).fill(0.0);
 var year_graph;
 
-function monthly_totals(activity_types) {
+function monthly_totals(activity_types, cur_year) {
     monthly_miles.fill(0.0);
-    cur_year = new Date;
-    cur_year = cur_year.getFullYear();
+    //cur_year = new Date;
     cur_month = new Date;
     cur_month = cur_month.getMonth() + 1;
 
@@ -14,7 +13,7 @@ function monthly_totals(activity_types) {
     d = new Date(int_d - 1);
     d = d.getDate();
     start = cur_year + "-01-01 00:00:00Z";
-    end = cur_year + "-" + cur_month + "-" + d + " 23:59:59Z";
+    end = cur_year + "-12-31 23:59:59Z";
     $.get('proc.php', {
             f: 'get_miles_between_dates',
             start: start,
