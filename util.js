@@ -111,7 +111,16 @@ function get_activity(activity_id) {
                 day: 'numeric'
             };
 
-            $(".card-header").html("<img style='height: 45px; width: 45px;' alt='" + msg["activity_type"] + "' src='icons/" + msg["activity_type"] + ".svg'>&nbsp;" + msg["activity_name"] + "<span class='text-muted float-right'>" + activity_date.toLocaleDateString(undefined, opts) + "</span>");
+            $(".card-header").html("<img style='height: 45px; width: 45px;' alt='" + msg["activity_type"] + 
+                            "' src='icons/" + 
+                            msg["activity_type"] + 
+                            ".svg'>&nbsp;" + 
+                            msg["activity_name"] + 
+                            "<span class='text-muted float-right'>" + 
+                            activity_date.toLocaleDateString(undefined, opts) + 
+                            "<a href='./edit.html?" + 
+                            location.href.split("?")[1] + 
+                            "'><img src='icons/edit.svg' style='border: 1px solid rgb(200, 200, 200); margin-left: 10px; padding: 4px; height: 40px; width: 40px;'></a></span>");
 
             $("#duration").html(seconds_to_formatted_string(msg["activity_duration"]));
             $("#description").html(msg["activity_description"]);
@@ -146,7 +155,7 @@ function get_activity(activity_id) {
                 coords = [];
                 for (var i = 0; i < points.length; i++) {
 
-                    elevations.push(points[i][0]["elevation"][0] * 3.28084);
+                    elevations.push(parseInt(points[i][0]["elevation"][0] * 3.28084));
                     time_in_activity = new Date(points[i][1]["time"][0]);
                     times.push(seconds_to_formatted_string((time_in_activity - activity_date) / 1000));
                     coords.push([parseFloat(points[i][2]["lat"][0]), parseFloat(points[i][3]["lon"][0])]);
@@ -165,10 +174,20 @@ function get_activity(activity_id) {
                             data: elevations,
                             borderWidth: 1,
                             pointBorderWidth: 0,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            pointStyle: 'false'
                         }]
                     },
                     options: {
+                   	tooltips: {
+                   		enabled: true,
+                  		mode: 'single',
+                   		callbacks: {
+                           		label: function (tooltipItems, data) {
+                                	return  tooltipItems.yLabel + " ft";
+                           		}
+                  		}
+                   	},
                         scales: {
                             yAxes: [{
                                 ticks: {
@@ -233,9 +252,11 @@ function get_activities(num, offset) {
                     "'>&nbsp;&nbsp;<a  class='text-reset text-decoration-none' href='activity.html?" +
                     msg[key]["id"] + "'>" +
                     msg[key]["name"] + " <span class='text-muted'> - " + activity_start.toLocaleDateString() + "</span>" +
-                    " </a><a href='proc.php?f=delete_activity&id=" +
+                    " </a>&nbsp;<a href='proc.php?f=delete_activity&id=" +
                     msg[key]["id"] + "'>" +
-                    "<img class='float-right' src='icons/trash.svg' style='height: 12px; width: 12;'></a></h5> \n ";
+                    "<img class='float-right' src='icons/trash.svg' style='height: 16px; width: 16px;'></a><a href='./edit.html?" +
+                    msg[key]["id"] + 
+                    "'><img class='float-right update-button' src='icons/edit.svg' id='update-" + msg[key]["id"] + "' style='height: 16px; width: 16px; margin: 0px 4px 4px 0px;'></a></h5> \n ";
 
                 if (msg[key]["type"] != "yoga" && msg[key]["type"] != "climb" && msg[key]["type"] != "workout" && msg[key]["type"] != "weight") {
                     $("#feed").append(activity_card +
@@ -271,6 +292,7 @@ function load_map(activity_points) {
     map.fitBounds(activity_drawing.getBounds());
 }
 
+// Load add dialog on every page
 function load_add_dialog() {
     $("#add-activity-dialog").load("add.html");
 
@@ -288,6 +310,23 @@ function load_add_dialog() {
         });
 }
 
+// Populate list of shoes to set default on settings page
+function populate_shoe_list() {
+    $.get('proc.php', {
+        f: 'list_shoes',
+        active: 1
+    })
+    .done(function(msg) {
+        $("#setting_default_shoe").empty();
+        var opts = "";
+        for (key of Object.keys(msg)) {
+            opts += `<option value='${msg[key]["id"]}'>${msg[key]["name"]}(${msg[key]["brand"]} ${msg[key]["model"]})</option>\\n`;
+        }
+        $("#setting_default_shoe").html(opts);
+    });
+}
+
+// List shoes and mileages on main page
 function list_shoes() {
     $.get('proc.php', {
             f: 'list_shoes',
