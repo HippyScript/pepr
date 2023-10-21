@@ -83,6 +83,18 @@ function make_database() : bool {
 	header("Location: ./index.html?init");
 }
 
+// Gets the namespace URL from a string containing GPX XML
+function get_ns_url($fstring) {
+	$ns_start = strpos($fstring, 'xmlns="') + 7;
+	$ns_end = strpos($fstring, '"', $ns_start);
+	if ($ns_end > 7) {
+		return substr($fstring, $ns_start, $ns_end - $ns_start);
+	}
+	else {
+		return FALSE;
+	}
+}
+
 function get_json_points(int $activity_id) {
 	$result = [];
 
@@ -94,7 +106,7 @@ function get_json_points(int $activity_id) {
 	if (!$xml_obj) {
 		return $xml_obj;
 	}
-	$xml_obj -> registerXPathNameSpace("gpx", "http://www.topografix.com/GPX/1/1");
+	$xml_obj -> registerXPathNameSpace("gpx", get_ns_url($activity_gpx[0]));
 
 	foreach ($xml_obj -> xpath("//gpx:trk/gpx:trkseg/gpx:trkpt") as $cur_point) {
 		array_push($result, [["elevation" => $cur_point -> ele], 
@@ -184,9 +196,11 @@ function get_activity(int $activity_id) {
 	$activity_contents = $db_connection->query("SELECT ID, activity_name, activity_type, activity_distance, activity_duration, activity_start, activity_pace_per_mile, activity_description, activity_elevation_gain, shoe FROM activities WHERE ID = " . intval($activity_id))->fetch();
 	$activity_contents['activity_description'] = str_replace("\n", "\n<br>", $activity_contents['activity_description']);
 	
-	$shoe = $db_connection->query("SELECT model, brand, nickname FROM shoes WHERE id = ". $activity_contents['shoe']) -> fetch();
+	$shoe = $db_connection->query("SELECT id, model, brand, nickname FROM shoes WHERE id = ". $activity_contents['shoe']) -> fetch();
+	$shoe_id = intval($shoe['id']); // Only needed to populate the select box on the "update activity" page
 	$shoe = $shoe['brand'] . " " . $shoe['model'] . " (" . $shoe['nickname'] .")";
 	$activity_contents['shoe'] = $shoe;
+	$activity_contents['shoe_id'] = $shoe_id;
 
 	$no_distance = array("climb", "yoga", "weight", "workout");
 	if (in_array($activity_contents["activity_type"], $no_distance)) {
@@ -198,6 +212,24 @@ function get_activity(int $activity_id) {
 		header('Content-Type: application/json');
 		echo json_encode($activity_contents);
 	}
+}
+
+function update_activity(int $activity_id, $activity_name, $activity_type, $activity_description, $activity_shoes) {
+	if (!isset($activity_id)) {header("Location: ./index.html");}
+	
+	global $MYSQL_HOST, $MYSQL_USER, $MYSQL_PASSWORD;
+	$db_connection = new PDO("mysql:host=".$MYSQL_HOST.";dbname=pepr_db", $MYSQL_USER, $MYSQL_PASSWORD);
+	$sql = "UPDATE activities SET ";
+
+	if (isset($activity_name)) {$sql .= "activity_name = '" . addslashes($activity_name) . "', ";}
+	if (isset($activity_type)) {$sql .= "activity_type = '" . addslashes($activity_type) . "', ";}
+	if (isset($activity_description)) {$sql .= "activity_description = '" . addslashes($activity_description) . "'";}
+	if (isset($activity_shoes)) {$sql .= ", shoe = " . $activity_shoes;}
+
+	$sql .= " WHERE id = " . intval($activity_id) . ";";
+
+	$db_connection -> exec($sql);
+	header("Location: index.html");
 }
 
 function get_splits(int $activity_id) {
@@ -224,14 +256,16 @@ function get_stats_from_file(string $activity_name, string $activity_type, strin
 	$lap_count = 1;
 	$time_interval = 0;
 	$overage = 0.0;
-	$xml_obj -> registerXPathNameSpace("gpx", "http://www.topografix.com/GPX/1/1");
+	// Get the namespace URL
+	$namespace = get_ns_url($fstring);
+
+	$xml_obj -> registerXPathNameSpace("gpx", $namespace);
 	$activity_date = str_replace("Z", "", str_replace("T", " ", $xml_obj -> metadata -> time));
 
 	foreach ($xml_obj -> xpath("//gpx:trk/gpx:trkseg/gpx:trkpt") as $cur_point) {
-		$cur_point -> registerXPathNameSpace("gpx", "http://www.topografix.com/GPX/1/1");
+		$cur_point -> registerXPathNameSpace("gpx", $namespace);
 		if (is_null($last_point)) {
 			$last_point = $cur_point;
-			print_r($cur_point);
 			$last_time = str_replace("Z", "", str_replace("T", " ", $cur_point -> time));
 			$last_elevation = array("ele" => floatval($cur_point -> ele), "lat" => floatval($cur_point["lat"]), "lon" => floatval($cur_point["lon"]));
 		}
@@ -264,15 +298,13 @@ function get_stats_from_file(string $activity_name, string $activity_type, strin
 			$last_time = $cur_time;
 		}
 	}
-
 	array_push($splits, [$lap_count, $lap_time, $lap_distance]);
 	add_activity($activity_name, $activity_type, $activity_date, $total_time_in_seconds, $total_distance, $total_elevation, $total_time_in_seconds / $total_distance, $activity_description, $activity_shoes, str_replace("'", "''", $fstring), $splits);
 	header("Location: index.html");
 }
 
-function get_stats_from_manual($activity_name, $activity_type, $activity_description, $activity_shoes, $activity_date, $activity_distance, $activity_hours, $activity_minutes, $activity_seconds)
+function get_stats_from_manual($activity_name, $activity_type, $activity_description, $activity_shoes, $activity_date, $activity_distance = -1, $activity_hours, $activity_minutes, $activity_seconds)
 {
-	if (!isset($activity_distance)) { $activity_distance = -1; $activity_elevation = -1;}
 	$activity_duration = -1;
 	$activity_duration += intval($activity_hours) * 3600;
 	$activity_duration += intval($activity_minutes) * 60;
@@ -438,10 +470,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 			break;
 		case 'list_shoes':
 			list_shoes($_GET['active']);
+			break;
+		case 'update_activity':
+			update_activity($_GET['activity_id'], $_GET['activity_name'], $_GET['activity_type'], $_GET['activity_description'], $_GET['activity_shoes']);
+			break;
+
 		}
 
 }
 elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+	/* if (isset($_POST['update'])){
+		update_activity(intval($_POST['activity_id']), $_POST['activity_name'], $_POST['activity_type'], $_POST['activity_description'], $_POST['activity_shoes']);
+	} */
 	if(isset($_FILES['gpx'])) {
 		if ($_FILES['gpx']['error'] == UPLOAD_ERR_OK && is_uploaded_file($_FILES['gpx']['tmp_name'])) { //checks that file is uploaded
 			$shoe = -1;
